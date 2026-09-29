@@ -31,7 +31,9 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error(err));
 
 app.use('/sahyog/auth', require('./routes/auth.routes'));
-app.use("/sahyog/labour",require("./routes/labour.routes"));
+app.use('/sahyog/laborers', require('./routes/labour.routes'));
+app.use("/sahyog/bookings",require("./routes/booking.routes"));
+app.use("/sahyog/reviews",require("./routes/review.routes"));
 app.get("/",(req,res)=>{
     res.render("home.ejs");
 })
