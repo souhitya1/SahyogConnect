@@ -10,7 +10,7 @@ const app = express();
 const flash = require("connect-flash")
 const LocalStrategy = require('passport-local').Strategy;
 const User = require("./models/user")
-app.use(cors());
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 app.set("views", path.join(__dirname, "/views"));
 app.use(express.static(path.join(__dirname, "public")));
@@ -35,6 +35,6 @@ app.use('/sahyog/laborers', require('./routes/labour.routes'));
 app.use("/sahyog/bookings",require("./routes/booking.routes"));
 app.use("/sahyog/reviews",require("./routes/review.routes"));
 app.get("/",(req,res)=>{
-    res.render("home.ejs");
+    res.json({message: "API running"});
 })
 app.listen(process.env.PORT, () => console.log(`Server running on ${process.env.PORT}`));
