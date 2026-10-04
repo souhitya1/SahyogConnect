@@ -35,7 +35,7 @@ router.post("/logout", (req, res) => {
     res.json({ message: "Logged out" });
   });
 });
-router.post("/me",(req,res)=>{
+router.get("/me",(req,res)=>{
     if(req.isAuthenticated()) return res.json({user: req.user});
       res.status(401).json({ error: "Not logged in" });
 })
