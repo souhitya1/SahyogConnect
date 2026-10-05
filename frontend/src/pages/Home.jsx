@@ -30,7 +30,7 @@ const [lat,setlat] = useState("22.57");
        seterror("");
        setloading(true)
        try{
-         const res = await api.get("/laborers/search",{
+         const res = await api.get("/labour/search",{
           params:{
             lng,
             lat,
@@ -97,7 +97,7 @@ const [lat,setlat] = useState("22.57");
                             {labourer.ratingCount} reviews)
                         </p>
                         <p>Distance: {(labourer.distance / 1000).toFixed(1)} km</p>
-                        <Link to={`/laborer/${labourer._id}`}>View Profile</Link>
+                        <Link to={`/labour/${labourer._id}`}>View Profile</Link>
                     </div>
                 ))}
             </div>

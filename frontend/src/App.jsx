@@ -4,7 +4,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Navbar from "./components/Navbar";
 import { useAuth } from "./context/Authcontext";
-import labourDetail from "./pages/labourDetail";
+import LabourDetail from "./pages/labourDetail";
 
 function App(){
   const {user} = useAuth();
@@ -15,7 +15,7 @@ function App(){
       <Route path="/" element={<Home/>}/>
       <Route path="/login" element={<Login/>}/>
       <Route path="/signup" element={<Signup/>}/>
-      <Route path="/labour/:id" element={<labourDetail/>}/>
+      <Route path="/labour/:id" element={<LabourDetail/>}/>
     </Routes>
     </>
   )
