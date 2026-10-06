@@ -10,6 +10,7 @@ function Navbar() {
             {user ? (
                 <>
                     <span>Welcome, {user.name}</span>
+                    <Link to="/labour">Become a labour</Link>
                     <button onClick={logout}>Logout</button>
                 </>
             ) : (
