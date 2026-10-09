@@ -11,12 +11,14 @@ function Navbar() {
                 <>
                     <span>Welcome, {user.name}</span>
                     <Link to="/labour">Become a labour</Link>
+                    <Link to="/bookings">My booking</Link>
                     <button onClick={logout}>Logout</button>
                 </>
             ) : (
                 <>
                     <Link to="/login">Login</Link>
                     <Link to="/signup">Signup</Link>
+                    
                 </>
             )}
         </nav>

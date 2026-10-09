@@ -18,6 +18,20 @@ router.post("/",async (req,res)=>{
         return res.status(400).json({error: err.message})
     }
 })
+router.get("/my",async(req,res)=>{
+ try{
+    if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"});
+   const bookings = await Booking.find({
+    userId: req.user._id,
+   }).populate({ 
+    path: "labourId", 
+    populate: { path: "userId", select: "name email phone", }, 
+}).sort({ scheduledAt: 1 });
+return res.json(bookings);
+ }catch(err){
+    return res.status(400).json({error: err.message});
+ }
+})
 router.patch("/:id/status",async(req,res)=>{
     try{
     if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"});

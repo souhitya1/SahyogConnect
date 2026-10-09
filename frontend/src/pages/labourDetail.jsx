@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 function LabourDetail(){
   const {id} = useParams();
-  const user = useAuth();
+  const {user} = useAuth();
   const [loading,setloading] = useState(false);
   const [booking,setbooking] = useState("");
   const [error,seterror] = useState("");
