@@ -10,6 +10,7 @@ function Labourdashboard(){
     const [bookings,setbookings] = useState([]);
     const [updatingId,setupdatingId] = useState("");
     const [message,setmessage] = useState("");
+    const [cancel,setcancel] = useState(null);
     const fetchbooking = useCallback(async()=>{
       setloading(true);
       seterror("");
@@ -57,6 +58,22 @@ function Labourdashboard(){
     }finally{
         setupdatingId("");
     }
+    }
+    const cancelbooking= async(bookingId)=>{
+      const confirm = window.confirm("Are you sure want to cancel is booking");
+      if(!confirm) return;
+      try{
+        setcancel(bookingId);
+        seterror("");
+        await api.patch(`/bookings/${bookingId}/cancel`)
+        await fetchbooking();
+      }catch(err){
+        seterror(
+        err.response?.data?.error || "Failed to cancel booking"
+      );
+      }finally{
+        setcancel(null);
+      }
     }
      const getStatusStyle = (status) => {
     const colors = {
