@@ -6,7 +6,7 @@ const bookingSchema = new mongoose.Schema({
   category: String,
   status: {
     type: String,
-    enum: ["pending", "accepted", "completed", "cancelled"],
+    enum: ["pending", "accepted","rejected", "completed", "cancelled"],
     default: "pending"
   },
   scheduledAt: Date

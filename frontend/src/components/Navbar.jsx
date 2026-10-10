@@ -13,6 +13,7 @@ function Navbar() {
                     <Link to="/labour">Become a labour</Link>
                     <Link to="/bookings">My booking</Link>
                     <button onClick={logout}>Logout</button>
+                    <Link to="/labour-dashboard">My dashboard</Link>
                 </>
             ) : (
                 <>

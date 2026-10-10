@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Booking = require("../models/booking");
-require("../models/labour");
+const Labour = require("../models/labour");
 
 router.post("/",async (req,res)=>{
     try{
@@ -32,6 +32,28 @@ return res.json(bookings);
     return res.status(400).json({error: err.message});
  }
 })
+router.get("/labourer/my",async(req,res)=>{
+    try{
+    if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"}); 
+    const labour = await Labour.findOne({
+        userId: req.user._id,
+    })
+    if(!labour){
+         return res.status(404).json({
+        error: "Labour profile not found for this account",
+      });
+    }
+    const bookings = await Booking.find({
+         labourId: labour._id,
+    })
+      .populate("userId", "name email phone")
+      .sort({ scheduledAt: 1 });
+
+    return res.json(bookings);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
 router.patch("/:id/status",async(req,res)=>{
     try{
     if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"});
