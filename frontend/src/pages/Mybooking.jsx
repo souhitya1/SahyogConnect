@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/Authcontext";
 function Mybooking(){
-    const user = useAuth();
+    const {user} = useAuth();
    const [error,seterror] = useState("");
-   const [bookings,setbookings] = useState("");
+   const [bookings,setbookings] = useState([]);
    const[loading,setloading] = useState(true);
    const [cancel,setcancel] = useState(null);
+   const [reviews,setreviews] = useState([]);
+   const [reviewforms,setreviewforms] = useState({});
+   const [reviewloading,setreviewloading] = useState({});
    const fetchbooking = async()=>{
     if (!user) return;
     try{
@@ -20,9 +23,52 @@ function Mybooking(){
         setloading(false);
     }
    }
+   const fetchreviews = async()=>{
+    try{
+        const response = await api.get("/reviews/my");
+        setreviews(response.data);
+    }catch(err){
+     console.error("Error fetching reviews:", error);
+    }
+   }
    useEffect(()=>{
-    fetchbooking()
+    fetchbooking();
+    fetchreviews();
    },[]);
+    const submitreviews = async(bookingId)=>{
+        const form = reviewforms[bookingId];
+        if(!form || !form.rating){
+            alert("Please fill the rating first");
+            return;
+        }
+        try{
+            setreviewloading((prev)=>({
+                ...prev,
+                [bookingId]: true
+            }))
+            await api.post("/reviews",{
+                bookingId,
+                rating: Number(form.rating),
+                comment: form.comment || ""
+            })
+            alert("Review added successfully");
+            await fetchreviews();
+            await fetchbooking();
+            setreviewforms((prev)=>({
+                ...prev,
+                [bookingId]: {rating: "", comment: ""}
+            }))
+        }catch(err){
+            alert(
+      error.response?.data?.error || "Failed to submit review."
+          );
+        }finally{
+            setreviewloading((prev)=>({
+                ...prev,
+                [bookingId]: false
+            }))
+        }
+    }
    const cancelbooking = async(bookingId)=>{
      const confirm = window.confirm("Are you sure want to cancel the booking");
      if(!confirm) return;
@@ -96,6 +142,76 @@ function Mybooking(){
                     cancel booking
                 </button>
             )}
+            {booking.status === "completed" && (
+      reviews.some(
+    (review) =>
+      review.bookingId === booking._id ||
+      review.bookingId?._id === booking._id
+  ) ? (
+    <p className="text-green-600 font-medium mt-3">
+      ✓ Review submitted
+    </p>
+  ) : (
+    <div className="mt-4 border-t pt-4">
+      <h3 className="font-semibold mb-2">
+        Rate your experience
+      </h3>
+
+      <div className="flex gap-2 mb-3">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() =>
+              setreviewforms((prev) => ({
+                ...prev,
+                [booking._id]: {
+                  ...prev[booking._id],
+                  rating: star,
+                },
+              }))
+            }
+            className={`text-2xl ${
+              star <= (reviewforms[booking._id]?.rating || 0)
+                ? "text-yellow-400"
+                : "text-gray-300"
+            }`}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        placeholder="Share your experience (optional)"
+        value={reviewforms[booking._id]?.comment || ""}
+        onChange={(e) =>
+          setreviewforms((prev) => ({
+            ...prev,
+            [booking._id]: {
+              ...prev[booking._id],
+              comment: e.target.value,
+            },
+          }))
+        }
+        maxLength={1000}
+        className="w-full border rounded-lg p-3"
+        rows={3}
+      />
+
+      <button
+        type="button"
+        onClick={() => submitreviews(booking._id)}
+        disabled={reviewloading[booking._id]}
+        className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+      >
+        {reviewloading[booking._id]
+          ? "Submitting..."
+          : "Submit Review"}
+      </button>
+    </div>
+  )
+)}  
             </div>
         ))
       )}

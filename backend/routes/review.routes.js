@@ -3,12 +3,34 @@ const router = express.Router();
 const Labour= require("../models/labour");
 const Booking = require("../models/booking");
 const Review = require("../models/review");
-
 router.post("/",async (req,res)=>{
     try{
         if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"});
         const {bookingId , rating, comment} = req.body;
         const booking = await Booking.findById(bookingId);
+        const numberrating = Number(rating);
+        if(
+            rating == "" ||
+            rating == null ||
+            rating == undefined ||
+            !Number.isInteger(numberrating) ||
+            numberrating <1 ||
+            numberrating > 5
+        ){
+            return res.status(400).json({
+                 error: "Rating must be a whole number from 1 to 5",
+            })
+        }
+        if(comment !== undefined && typeof comment != "string"){
+            return res.status(400).json({
+                error: "Invalid comment"
+            })
+        }
+        if(comment && comment.length> 1000){
+            return res.status(400).json({
+                error: "Comment cannot exceed 1000 characters"
+            })
+        }
         if(!booking) return res.status(404).json({error: "No booking found"});
         if(booking.status != "completed") return res.status(400).json({error: "Booking is not completed"})
         if(booking.userId.toString() != req.user._id.toString()){
@@ -37,6 +59,19 @@ router.post("/",async (req,res)=>{
         res.json(newReview);
     }catch(err){
         return res.status(400).json({error: err.message})
+    }
+})
+router.get("/my",async(req,res)=>{
+    try{
+     if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"});
+     const reviews = await Review.find({
+        userId : req.user._id
+     }).sort({ createdAt: -1 });
+     return res.json(reviews)
+    }catch(err){
+    return res.status(500).json({
+      error: "Failed to fetch reviews",
+    });
     }
 })
 router.get("/labour/:labourId",async(req,res)=>{

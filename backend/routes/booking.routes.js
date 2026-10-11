@@ -133,6 +133,7 @@ router.patch("/:id/cancel",async(req,res)=>{
      if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ error: "Invalid booking ID" });
     }
+    
     const booking = await Booking.findOneAndUpdate({
         _id : req.params.id,
         userId: req.user._id
