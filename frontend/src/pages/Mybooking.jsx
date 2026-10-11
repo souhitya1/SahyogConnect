@@ -6,6 +6,7 @@ function Mybooking(){
    const [error,seterror] = useState("");
    const [bookings,setbookings] = useState("");
    const[loading,setloading] = useState(true);
+   const [cancel,setcancel] = useState(null);
    const fetchbooking = async()=>{
     if (!user) return;
     try{
@@ -22,6 +23,17 @@ function Mybooking(){
    useEffect(()=>{
     fetchbooking()
    },[]);
+   const cancelbooking = async(bookingId)=>{
+     const confirm = window.confirm("Are you sure want to cancel the booking");
+     if(!confirm) return;
+     try{
+        seterror("");
+        await api.patch(`/bookings/${bookingId}/cancel`)
+        await fetchbooking();
+     }catch(err){
+        seterror(err.response?.data?.error || "Failed to cancel booking");
+     }
+   }
    const getstatus = (status)=>{
     switch(status?.toLowerCase()){
         case "pending":
@@ -80,7 +92,7 @@ function Mybooking(){
                </span>
             </p>
             {booking.status.toLowerCase() == "pending" && (
-                <button>
+                <button onClick={()=> cancelbooking(booking._id)}>
                     cancel booking
                 </button>
             )}

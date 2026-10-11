@@ -59,22 +59,6 @@ function Labourdashboard(){
         setupdatingId("");
     }
     }
-    const cancelbooking= async(bookingId)=>{
-      const confirm = window.confirm("Are you sure want to cancel is booking");
-      if(!confirm) return;
-      try{
-        setcancel(bookingId);
-        seterror("");
-        await api.patch(`/bookings/${bookingId}/cancel`)
-        await fetchbooking();
-      }catch(err){
-        seterror(
-        err.response?.data?.error || "Failed to cancel booking"
-      );
-      }finally{
-        setcancel(null);
-      }
-    }
      const getStatusStyle = (status) => {
     const colors = {
       pending: "#b45309",
