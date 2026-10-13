@@ -68,7 +68,7 @@ function Signup(){
         required
            />
            <br/>
-           <select onChange={handlechange} value={form.role} name="role">
+           <select id="role" onChange={handlechange} value={form.role} name="role">
             <option value="user">Customer</option>
           <option value="laborer">Laborer</option>
            </select>

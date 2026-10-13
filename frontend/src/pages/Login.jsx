@@ -17,8 +17,13 @@ function Login(){
         seterror("");
         setloading(true);
         try{
-            await api.post("/auth/login",form);
-            navigate("/");
+            const response = await api.post("/auth/login",form);
+            const loggedinuser = response.data.user;
+            if(loggedinuser == "laborer"){
+                navigate("/labour");
+            }else{
+                navigate("/");
+            }
         }catch(err){
          seterror(err.response?.data?.error || "Signup failed");
         }finally{

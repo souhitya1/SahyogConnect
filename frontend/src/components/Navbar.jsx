@@ -7,14 +7,22 @@ function Navbar() {
     return (
         <nav style={{ display: "flex", gap: "16px", padding: "16px", borderBottom: "1px solid #ccc" }}>
             <Link to="/">SahyogConnect</Link>
-            {user ? (
+            {user? (
                 <>
                     <span>Welcome, {user.name}</span>
-                    <Link to="/labour">Become a labour</Link>
+                    {user.role === "user" &&(
+                    <>
                     <Link to="/bookings">My booking</Link>
-                    <button onClick={logout}>Logout</button>
+                    </>
+                    )}
+                    {user.role === "laborer" &&(
+                    <>
+                    <Link to="/labour">Become a labour</Link>
                     <Link to="/labour-dashboard">My dashboard</Link>
-                </>
+                    </>
+                    )}
+                    <button onClick={logout}>Logout</button>
+                    </>
             ) : (
                 <>
                     <Link to="/login">Login</Link>
