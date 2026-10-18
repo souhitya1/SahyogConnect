@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { Link } from "react-router-dom";
 import {
@@ -39,20 +39,24 @@ const usericon = L.divIcon({
 })
 function MapUpdator({center}){
     const map = useMap();
-    useState(()=>{
+    useEffect(()=>{
         map.setView(center,14)
-    });
+    },[map,center]);
     return null;
 }
 function Home(){
    const [catagory,setcatagory] = useState("electrician")
    const [error,seterror] = useState("");
    const [lng,setlng] = useState("88.36");
-const [lat,setlat] = useState("22.57");
+    const [lat,setlat] = useState("22.57");
    const [location,setlocation] = useState("");
    const [loading,setloading] = useState(false)
    const [results, setresults] = useState([]);
    const [searched,setsearched] = useState(false);
+   const[userposition, setuserposition] = useState([
+    22.57,
+    88.36
+   ])
    const detectLocation = () => {
         seterror("");
         if (!navigator.geolocation) {
@@ -61,8 +65,11 @@ const [lat,setlat] = useState("22.57");
         }
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                    setlat(pos.coords.latitude.toString());
-                    setlng(pos.coords.longitude.toString());
+                    const latitude = pos.coords.latitude;
+                    const longitude = pos.coords.longitude;
+                    setlat(latitude.toString());
+                    setlng(longitude.toString());
+                    setuserposition([latitude,longitude]);
             },
             () => {
                 seterror("Could not get your location. Please allow location access.");
@@ -90,7 +97,6 @@ const [lat,setlat] = useState("22.57");
          seterror("Please enter valid latitude and longitude.");
             return;
        }
-       setloading(true);
        try{
          const res = await api.get("/labour/search",{
           params:{
@@ -101,13 +107,14 @@ const [lat,setlat] = useState("22.57");
           }
          })
          setresults(res.data)
+         setuserposition([latitude,longitude]);
+         setsearched(true);
        }catch(err){
         seterror(err.response?.data?.error || "Search failed");
        }finally{
         setloading(false);
        }
     }
-    const userposition = [Number(lat),Number(lng)];
     return(
     <div style={{ maxWidth: 700, margin: "40px auto" }}>
             <h1>Find a Laborer Near You</h1>
@@ -166,7 +173,7 @@ const [lat,setlat] = useState("22.57");
                     </Marker>
                     <Circle
                     center={userposition}
-                    radius={1000}
+                    radius={10000}
                     pathOptions={{
                             color: "#16a34a",
                             fillColor: "#16a34a",
