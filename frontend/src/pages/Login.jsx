@@ -19,10 +19,12 @@ function Login(){
         try{
             const response = await api.post("/auth/login",form);
             const loggedinuser = response.data.user;
-            if(loggedinuser == "laborer"){
+            if(loggedinuser?.role == "laborer"){
                 navigate("/labour");
-            }else{
+            }else if(loggedinuser?.role == user){
                 navigate("/");
+            }else{
+                seterror("user not found");
             }
         }catch(err){
          seterror(err.response?.data?.error || "Signup failed");

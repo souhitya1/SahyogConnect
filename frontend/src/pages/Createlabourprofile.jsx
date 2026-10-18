@@ -46,6 +46,7 @@ function Createlabourprofile(){
      setloading(true);
       if (!form.lng || !form.lat) {
             seterror("Please set your location before submitting.");
+            setloading(false);
             return;
         }
      try{
@@ -78,7 +79,7 @@ function Createlabourprofile(){
             <form onSubmit={handlesubmit}>
                 <label>Category:</label>
                 <br />
-                <select name="category" value={form.category} onChange={handleChange}>
+                <select name="category" value={form.category} onChange={handleChange} required>
                     <option value="electrician">Electrician</option>
                     <option value="plumber">Plumber</option>
                     <option value="carpenter">Carpenter</option>
