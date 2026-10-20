@@ -147,7 +147,7 @@ function Home(){
             {error && <p style={{ color: "red" }}>{error}</p>}
             {searched &&(
                  <p>
-                    Found {results.length} labourer(s) within 1 km.
+                    Found {results.length} labourer(s) within 10 km.
                 </p>
             )}
 
@@ -215,10 +215,13 @@ function Home(){
                                     <br />
                                     Rate: ₹{labourer.hourlyRate}/hr
                                     <br />
-                                    Distance:{" "}
-                                    {(
-                                        labourer.distance / 1000
-                                    ).toFixed(2)} km
+                                    <strong>Distance from you</strong>
+                                    {" "}
+                                    {Number.isFinite(labourer.distance)
+                                    ? labourer.distance>=1000
+                                     ? `${(labourer.distance/1000).toFixed(2)} km`
+                                    : `${Math.round(labourer.distance)} metres`
+                                : "Unavailable"}
                                     <br />
                                     <Link to={`/labour/${labourer._id}`}>
                                         View Profile
