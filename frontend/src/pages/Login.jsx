@@ -17,11 +17,14 @@ function Login(){
         seterror("");
         setloading(true);
         try{
-            const response = await api.post("/auth/login",form);
+            const response = await api.post("/auth/login",{
+                email: form.email.trim(),
+                password: form.password,
+            });
             const loggedinuser = response.data.user;
             if(loggedinuser?.role == "laborer"){
                 navigate("/labour");
-            }else if(loggedinuser?.role == user){
+            }else if(loggedinuser?.role == "user"){
                 navigate("/");
             }else{
                 seterror("user not found");

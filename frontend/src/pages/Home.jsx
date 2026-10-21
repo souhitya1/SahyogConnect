@@ -83,7 +83,6 @@ function Home(){
     const handlesearch = async(e)=>{
        e.preventDefault();
        seterror("");
-       setloading(true)
        const latitude = Number(lat);
        const longitude = Number(lng);
        if(
@@ -97,6 +96,7 @@ function Home(){
          seterror("Please enter valid latitude and longitude.");
             return;
        }
+       setloading(true);
        try{
          const res = await api.get("/labour/search",{
           params:{
@@ -148,6 +148,7 @@ function Home(){
             {searched &&(
                  <p>
                     Found {results.length} labourer(s) within 10 km.
+                    Click on labourer marker to see distance from you
                 </p>
             )}
 

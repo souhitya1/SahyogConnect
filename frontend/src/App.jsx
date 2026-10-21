@@ -13,7 +13,7 @@ function App(){
   const {user} = useAuth();
   return(
     <>
-    {user && <Navbar/>}
+     <Navbar/>
     <Routes>
       <Route path="/" element={<Home/>}/>
       <Route path="/login" element={<Login/>}/>
