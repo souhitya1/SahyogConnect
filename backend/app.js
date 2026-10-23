@@ -34,6 +34,7 @@ app.use('/sahyog/auth', require('./routes/auth.routes'));
 app.use('/sahyog/labour', require('./routes/labour.routes'));
 app.use("/sahyog/bookings",require("./routes/booking.routes"));
 app.use("/sahyog/reviews",require("./routes/review.routes"));
+app.use("/sahyog/verification",require("./routes/verification.routes"));
 app.get("/",(req,res)=>{
     res.json({message: "API running"});
 })

@@ -3,6 +3,7 @@ const router = express.Router();
 const Booking = require("../models/booking");
 const Labour = require("../models/labour");
 const mongoose = require("mongoose");
+const requireverifiedLabourer = require("../middleware/requireverifiedLabourer")
 
 router.post("/",async (req,res)=>{
     try{
@@ -33,7 +34,7 @@ return res.json(bookings);
     return res.status(400).json({error: err.message});
  }
 })
-router.get("/labourer/my",async(req,res)=>{
+router.get("/labourer/my",requireverifiedLabourer,async(req,res)=>{
     try{
     if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"}); 
     const labour = await Labour.findOne({
@@ -118,13 +119,13 @@ async function updatestatus(req,res,currentstatus,newstatus){
      return res.status(500).json({ error: err.message });
     }
 }
-router.patch("/:id/accept",(req,res)=>{
+router.patch("/:id/accept",requireverifiedLabourer,(req,res)=>{
     updatestatus(req,res,"pending","accepted")
 })
-router.patch("/:id/reject",(req,res)=>{
+router.patch("/:id/reject",requireverifiedLabourer,(req,res)=>{
     updatestatus(req,res,"pending","rejected")
 })
-router.patch("/:id/complete",(req,res)=>{
+router.patch("/:id/complete",requireverifiedLabourer,(req,res)=>{
     updatestatus(req,res,"accepted","completed")
 })
 router.patch("/:id/cancel",async(req,res)=>{
