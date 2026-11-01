@@ -11,6 +11,7 @@ function Labourdashboard(){
     const [updatingId,setupdatingId] = useState("");
     const [message,setmessage] = useState("");
     const [cancel,setcancel] = useState(null);
+
     const fetchbooking = useCallback(async()=>{
       setloading(true);
       seterror("");
@@ -86,6 +87,56 @@ function Labourdashboard(){
       </main>
     );
   }
+  if(user.verificationStatus != "approved" ||
+    user.isVerified != true
+  ){
+    const isRejected = user.verificationStatus == "rejected"
+    return(
+      <main style={styles.container}>
+            <h1>Labourer Dashboard</h1>
+            <p>Welcome, {user.name || "Labourer"}</p>
+
+            {user.verificationStatus === "pending" && (
+                <div style={styles.verificationPending}>
+                    <h3>Verification Pending</h3>
+                    <p>
+                        Your verification is pending admin review.
+                        You will be able to manage bookings after approval.
+                    </p>
+                </div>
+            )}
+
+            {isRejected && (
+                <div style={styles.verificationRejected}>
+                    <h3>Verification Rejected</h3>
+                    <p>
+                        {user.verificationNote ||
+                            "Your application was rejected. Please contact support for assistance."}
+                    </p>
+                </div>
+            )}
+
+            {!user.verificationStatus && (
+                <div style={styles.verificationPending}>
+                    <h3>Verification Required</h3>
+                    <p>
+                        Please complete your verification application
+                        before accessing labourer dashboard features.
+                    </p>
+                </div>
+            )}
+
+            <button
+                onClick={fetchbooking}
+                disabled={loading}
+                style={styles.refreshButton}
+            >
+                Refresh Status
+            </button>
+        </main>
+    );
+}
+  
   const pending = bookings.filter(
     (b)=>b.status == 'pending'
   ).length;
@@ -294,6 +345,23 @@ const styles = {
     border: "1px dashed #d1d5db",
     borderRadius: "12px",
   },
+  verificationPending: {
+    background: "#fef3c7",
+    color: "#92400e",
+    padding: "20px",
+    borderRadius: "12px",
+    marginTop: "20px",
+    marginBottom: "20px",
+},
+
+verificationRejected: {
+    background: "#fee2e2",
+    color: "#991b1b",
+    padding: "20px",
+    borderRadius: "12px",
+    marginTop: "20px",
+    marginBottom: "20px",
+},
   success: { color: "#15803d" },
   error: { color: "#b91c1c" },
 };
