@@ -8,6 +8,7 @@ import LabourDetail from "./pages/labourDetail";
 import Createlabourprofile from "./pages/createlabourprofile";
 import Mybooking from "./pages/Mybooking";
 import Labourdashboard from "./pages/Labourdashboard";
+import Labourverification from "./pages/Labourverification";
 
 function App(){
   const {user} = useAuth();
@@ -22,6 +23,7 @@ function App(){
       <Route path="/labour" element={<Createlabourprofile/>}/>
       <Route path="/bookings" element= {<Mybooking/>}/>
       <Route path="/labour-dashboard" element= {<Labourdashboard/>}/>
+      <Route path="/labour-verification" element= {<Labourverification/>}/>
     </Routes>
     </>
   )
