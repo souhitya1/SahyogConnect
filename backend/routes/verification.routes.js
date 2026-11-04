@@ -3,13 +3,69 @@ const router = express.Router();
 const User = require("../models/user");
 const requireAdmin = require("../middleware/requireAdmin")
 
+router.post("/submit",async(req,res)=>{
+try{
+ if(!req.isAuthenticated()){
+    return res.status(401).json({
+        error: "Please log in first"
+    })
+ }
+ if(req.user.role != "laborer"){
+    return res.status(403).json({
+        error: "You have to become a labourer first"
+    })
+ }
+  const {address, experience, idType} = req.body;
+  if(! address?.trim() || ! idType){
+    return res.status(400).json({
+        error: "Please provide address and identity document type"
+    })
+  }
+  if(experience == "" ||
+    experience == undefined ||
+    experience < 0 ||
+    experience > 70 ||
+     !Number.isFinite(Number(experience))
+  ){
+    return res.status(400).json({
+        error: "Please enter valid work experience"
+    })
+  }
+  if(
+    ["pending","approved"].includes(req.user.verificationStatus)
+  ){
+    return res.status(400).json({
+        error: "You already have a pending or approved application"
+    })
+  }
+  req.user.verificationAddress = address.trim();
+  req.user.verificationExperience = Number(experience);
+  req.user.verificationIdType = idType;
+  req.user.verificationStatus = "pending";
+  req.user.verificationSubmittedAt = new Date();
+  req.user.verificationReviewedAt = null;
+  req.user.verificationNote = "";
+  req.user.isVerified = false;
+  await req.user.save();
+   return res.json({
+            message: "Verification application submitted successfully.",
+            verificationStatus: "pending"
+        });
+}catch(err){
+  console.error("Verification submission error:", err);
+
+        return res.status(500).json({
+            error: "Could not submit verification application."
+        });
+}
+})
 router.get("/pending",requireAdmin,async(req,res)=>{
   try{
     const labourers = await User.find({
         role: "laborer",
         verificationStatus: "pending"
     })
-      .select("name email phone verificationSubmittedAt")
+      .select("name email phone verificationSubmittedAt verificationAddress verificationExperience verificationIdType")
       .sort({verificationSubmittedAt : 1})
       res.json(labourers);
   }catch(err){

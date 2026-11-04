@@ -18,8 +18,15 @@ function Navbar() {
                     )}
                     {user.role === "laborer" &&(
                     <>
-                    <Link to="/labour">Become a labour</Link>
+                    {user?.role === "laborer" &&
+                 user?.verificationStatus === "approved" &&
+                 user?.isVerified === true && (
+                  <Link to="/labour">Become a labour</Link>
+)}
                     <Link to="/labour-dashboard">My dashboard</Link>
+                    {user?.role === "laborer" && (
+                      <Link to="/labour-verification">Verify</Link>
+)}
                     </>
                     )}
                     <button onClick={logout}>Logout</button>

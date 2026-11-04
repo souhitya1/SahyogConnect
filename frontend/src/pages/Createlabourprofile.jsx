@@ -72,6 +72,28 @@ function Createlabourprofile(){
             </div>
         );
     }
+    if (
+    user.verificationStatus !== "approved" ||
+    user.isVerified !== true
+) {
+    return (
+        <div style={{ maxWidth: 500, margin: "40px auto" }}>
+            <h2>Verification Required</h2>
+
+            <p>
+                You cannot create a labourer profile until
+                the admin approves your verification.
+            </p>
+
+            <button
+                type="button"
+                onClick={() => navigate("/labour-verification")}
+            >
+                Complete Verification
+            </button>
+        </div>
+    );
+}
     return (
         <div style={{ maxWidth: 500, margin: "40px auto" }}>
             <h1>Create / Update Laborer Profile</h1>

@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Labour = require("../models/labour");
+const requireVerifiedLaborer  = require("../middleware/requireverifiedLabourer")
 
-router.post("/",async (req,res)=>{
+router.post("/",requireVerifiedLaborer ,async (req,res)=>{
     try{
         if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"});
         const {category, skills, bio, hourlyRate, lng, lat } = req.body;

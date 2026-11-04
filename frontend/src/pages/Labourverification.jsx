@@ -18,13 +18,13 @@ function Labourverification(){
             [e.target.name]: e.target.value
         })
     }
-    const handlesubmit = (e)=>{
+    const handlesubmit = async(e)=>{
         e.preventDefault();
         setloading(true);
         setmessage("");
         seterror("");
         try{
-          const response = api.post("/verification/submit",
+          const response = await api.post("/verification/submit",
           {
             ...form,
             experience: Number(form.experience)
@@ -43,10 +43,10 @@ function Labourverification(){
     if(!user){
         return <p>Please log in first</p>
     }
-    if(user.role != "labourer"){
+    if(user.role != "laborer"){
         return <p>You have to be a labour first</p>
     }
-    if(user.verificationStatus == "approved"){
+    if(user.verificationStatus == "approved" && user.isVerified == true){
         return(
             <div>
                 <h2>Verification complete</h2>
@@ -58,7 +58,8 @@ function Labourverification(){
         return(
             <div>
                 <h2>Verification pending</h2>
-                <p>You have verify your account first</p>
+                <p>Your verification application has been submitted.
+                      Please wait until the admin approves it.</p>
             </div>
         )
     }
@@ -88,7 +89,7 @@ function Labourverification(){
                     id="address"
                     name="address"
                     value={form.address}
-                    onChange={handleChange}
+                    onChange={handlechange}
                     required
                     maxLength={300}
                     placeholder="Enter your residential address"
@@ -107,7 +108,7 @@ function Labourverification(){
                     max="70"
                     step="1"
                     value={form.experience}
-                    onChange={handleChange}
+                    onChange={handlechange}
                     required
                     style={styles.input}
                 />
@@ -120,7 +121,7 @@ function Labourverification(){
                     id="idType"
                     name="idType"
                     value={form.idType}
-                    onChange={handleChange}
+                    onChange={handlechange}
                     required
                     style={styles.input}
                 >
