@@ -39,4 +39,55 @@ router.get("/me",(req,res)=>{
     if(req.isAuthenticated()) return res.json({user: req.user});
       res.status(401).json({ error: "Not logged in" });
 })
+router.post("/admin-login",async(req,res)=>{
+  try{
+  const{email,password} = req.body;
+  if(!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD){
+    return res.status(500).json({
+      error: "Admin credentials are not configured."
+    })
+  }
+  if(email != process.env.ADMIN_EMAIL || password != process.env.ADMIN_PASSWORD){
+    return res.status(401).json({
+      error: "Invalid credentials entered"
+    })
+  }
+  let admin = await User.findOne({
+    email: process.env.ADMIN_EMAIL
+  });
+  if(!admin){
+    admin = new User({
+      name: "Sahyog admin",
+      email: process.env.ADMIN_EMAIL,
+      role: "user",
+      isAdmin: true
+    })
+  }
+  admin.role = "user";
+  admin.isAdmin = true;
+  await admin.setPassword(process.env.ADMIN_PASSWORD);
+  await admin.save();
+
+  req.login(admin, (err) => {
+            if (err) return next(err);
+
+            return res.json({
+                message: "Admin login successful.",
+                user: {
+                    _id: admin._id,
+                    name: admin.name,
+                    email: admin.email,
+                    role: admin.role,
+                    isAdmin: true
+                }
+            });
+        });
+
+}catch(err){
+   console.error("Admin login error:", err);
+        res.status(500).json({
+            error: "Admin login failed."
+        });
+}
+})
 module.exports = router
