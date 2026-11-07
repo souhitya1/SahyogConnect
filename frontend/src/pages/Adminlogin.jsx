@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios"; 
 function Adminlogin(){
+const navigate = useNavigate();
  const[email,setemail] = useState("");
  const[password,setpassword] = useState("");
  const[error,seterror] = useState("");
@@ -61,3 +63,4 @@ function Adminlogin(){
     </div>
  )
 }
+export default Adminlogin;

@@ -44,11 +44,11 @@ function Adminverification(){
                     : "Verification rejected."
             }
          )
-         setmessage(response.data);
+         setmessage(response.data.message);
          setapplications((previous) =>
             previous.filter((application) => application._id !== id)
         );
-    }catch(er){
+    }catch(err){
         seterror(
             err.response?.data?.error ||
             "Could not update verification status."
@@ -56,6 +56,7 @@ function Adminverification(){
     }finally{
         setprocessing("");
     }
+}
     if (!user) {
     return <p>Please log in first.</p>;
 }
@@ -108,6 +109,10 @@ return (
                         {application.verificationIdType}
                     </p>
                     <p>
+                    <strong>ID Number:</strong>{" "}
+                        {application.verificationIdNumber}
+                      </p>
+                    <p>
                         <strong>Submitted:</strong>{" "}
                         {application.verificationSubmittedAt
                             ? new Date(
@@ -142,8 +147,8 @@ return (
         )}
     </div>
 );
-
 }
+
 
 const styles = {
 container: {
@@ -176,5 +181,4 @@ borderRadius: "5px",
 cursor: "pointer"
 }
 };
-}
 export default Adminverification;

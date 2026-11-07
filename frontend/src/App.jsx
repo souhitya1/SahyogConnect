@@ -10,6 +10,7 @@ import Mybooking from "./pages/Mybooking";
 import Labourdashboard from "./pages/Labourdashboard";
 import Labourverification from "./pages/Labourverification";
 import Adminverification from "./pages/Adminverification";
+import Adminlogin from "./pages/Adminlogin";
 
 function App(){
   const {user} = useAuth();
@@ -26,6 +27,7 @@ function App(){
       <Route path="/labour-dashboard" element= {<Labourdashboard/>}/>
       <Route path="/labour-verification" element= {<Labourverification/>}/>
       <Route path="/admin/verification" element= {<Adminverification/>}/>
+      <Route path="/admin-login" element= {<Adminlogin/>}/>
     </Routes>
     </>
   )

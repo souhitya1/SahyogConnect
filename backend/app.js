@@ -1,9 +1,14 @@
-require('dotenv').config();
+const path = require("path");
+
+require("dotenv").config({
+  path: path.join(__dirname, "../.env")
+});
+console.log("Admin email loaded:", !!process.env.ADMIN_EMAIL);
+console.log("Admin password loaded:", !!process.env.ADMIN_PASSWORD);
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const passport = require("passport");
-const path = require("path")
 const ejsMate = require("ejs-mate");
 const session = require('express-session');
 const app = express();
@@ -17,7 +22,12 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.engine("ejs", ejsMate);
-app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: true }));
+app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false ,cookie: {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: 24 * 60 * 60 * 1000
+  }}));
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
@@ -26,7 +36,7 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, User.authenticate()))
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error(err));
 

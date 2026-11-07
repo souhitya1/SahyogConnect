@@ -47,7 +47,7 @@ router.post("/admin-login",async(req,res)=>{
       error: "Admin credentials are not configured."
     })
   }
-  if(email != process.env.ADMIN_EMAIL || password != process.env.ADMIN_PASSWORD){
+  if(email?.trim().toLowerCase() != process.env.ADMIN_EMAIL || password != process.env.ADMIN_PASSWORD){
     return res.status(401).json({
       error: "Invalid credentials entered"
     })
@@ -62,15 +62,22 @@ router.post("/admin-login",async(req,res)=>{
       role: "user",
       isAdmin: true
     })
-  }
-  admin.role = "user";
-  admin.isAdmin = true;
   await admin.setPassword(process.env.ADMIN_PASSWORD);
   await admin.save();
+  }else{
+    admin.role= "user";
+    admin.isAdmin= true;
+    await admin.setPassword(process.env.ADMIN_PASSWORD);
+    await admin.save();
+  }
 
   req.login(admin, (err) => {
             if (err) return next(err);
-
+             req.session.save((err)=>{
+              if (err) {
+                return next(err);
+         }
+             
             return res.json({
                 message: "Admin login successful.",
                 user: {
@@ -82,6 +89,7 @@ router.post("/admin-login",async(req,res)=>{
                 }
             });
         });
+      });
 
 }catch(err){
    console.error("Admin login error:", err);

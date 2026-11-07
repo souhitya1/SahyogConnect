@@ -4,7 +4,7 @@ module.exports = function requireAdmin(req,res,next){
             error: "Please log in first"
         })
     }
-    if(req.user.isAdmin() != true){
+    if(req.user.isAdmin != true){
                 return res.status(403).json({
             error: "Admin access required."
         });

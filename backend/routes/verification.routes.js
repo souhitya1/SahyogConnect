@@ -15,11 +15,26 @@ try{
         error: "You have to become a labourer first"
     })
  }
-  const {address, experience, idType} = req.body;
+  const {address, experience, idType, idNumber} = req.body;
   if(! address?.trim() || ! idType){
     return res.status(400).json({
         error: "Please provide address and identity document type"
     })
+  }
+  if(idType == "Aadhaar" && !/^\d{4}$/.test(idNumber || "")){
+    return res.status(400).json({
+     error: "Enter the last 4 digits of Aadhaar."
+    })
+  }
+  if(idType == "Voter" && !/^[A-Za-z0-9]{10}$/.test(idNumber || "")){
+    return res.status(400).json({
+       error: "Enter a valid Voter ID number."
+    })
+  }
+  if(!["Aadhaar,Voter"].includes(idType)){
+    return res.status(400).json({
+        error: "Select a valid identity document type."
+    });
   }
   if(experience == "" ||
     experience == undefined ||
@@ -61,13 +76,15 @@ try{
 })
 router.get("/pending",requireAdmin,async(req,res)=>{
   try{
+    console.log("Admin requesting pending applications:", req.user.email);
     const labourers = await User.find({
         role: "laborer",
         verificationStatus: "pending"
     })
-      .select("name email phone verificationSubmittedAt verificationAddress verificationExperience verificationIdType")
+      .select("name email phone verificationSubmittedAt verificationAddress verificationExperience verificationIdType verificationIdNumber")
       .sort({verificationSubmittedAt : 1})
-      res.json(labourers);
+      console.log("Pending applications found",labourers.length);
+      return res.json(labourers);
   }catch(err){
     console.error(err);
     res.status(500).json({
@@ -77,6 +94,9 @@ router.get("/pending",requireAdmin,async(req,res)=>{
 })
 router.patch("/:id/review",requireAdmin,async(req,res)=>{
   try{
+    console.log("PATCH review requested by:", req.user.email);
+        console.log("Admin status:", req.user.isAdmin);
+        console.log("Request body:", req.body);
     const {status,note} = req.body;
     if(!["approved", "rejected"].includes(status)){
         return res.status(401).json({

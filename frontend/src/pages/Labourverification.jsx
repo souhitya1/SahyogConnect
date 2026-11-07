@@ -6,7 +6,8 @@ function Labourverification(){
     const [form,setform] = useState({
          address: "",
         experience: "",
-        idType: ""
+        idType: "",
+        idNumber: ""
     })
     const [loading,setloading] = useState(false);
     const [message,setmessage] = useState("");
@@ -24,6 +25,17 @@ function Labourverification(){
         setmessage("");
         seterror("");
         try{
+            if (form.idType === "Aadhaar" &&
+          !/^\d{4}$/.test(form.idNumber)) {
+            alert("Enter the last 4 digits of your Aadhaar number.");
+        return;
+}
+
+       if (form.idType === "Voter" &&
+           !/^[A-Za-z0-9]{10}$/.test(form.idNumber)) {
+            alert("Enter a valid 10-character Voter ID number.");
+           return;
+}
           const response = await api.post("/verification/submit",
           {
             ...form,
@@ -134,14 +146,32 @@ function Labourverification(){
                     <option value="Voter ID">
                         Voter ID
                     </option>
-                    <option value="Driving Licence">
-                        Driving Licence
-                    </option>
-                    <option value="Other Government ID">
-                        Other government-issued ID
-                    </option>
                 </select>
-
+            {
+                form.idType &&(
+                    <div>
+                        <label>
+                            {form.idType == "Aadhaar"
+                            ? " Last 4 digits"
+                            : "Voter ID number"
+                            }
+                        </label>
+                        <input
+                         type="text"
+                         name= "idNumber"
+                         value={form.idNumber}
+                         onChange={handlechange}
+                         placeholder={
+                            form.idType == "Aadhaar"
+                            ? "Enter last 4 digits"
+                            : "Enter Voter ID number"
+                         }
+                          maxLength={form.idType === "Aadhaar" ? 4 : 10}
+                          required
+                        />
+                    </div>
+                )
+            }
                 <button
                     type="submit"
                     disabled={loading}

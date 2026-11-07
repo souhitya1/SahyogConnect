@@ -36,6 +36,10 @@ verificationNote: {
 verificationAddress: String,
 verificationExperience: Number,
 verificationIdType: String,
+verificationIdNumber: {
+    type: String,
+    default: ""
+},
 
 isAdmin: {
     type: Boolean,
