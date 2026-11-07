@@ -14,10 +14,12 @@ function Labourverification(){
     const [error,seterror] = useState("");
 
     const handlechange = (e)=>{
-        setform({
-            ...form,
-            [e.target.name]: e.target.value
-        })
+        const {name,value} = e.target;
+        setform(prev=>({
+            ...prev,
+            [name]: value,
+            ...(name == "idType"?{idNumber: ""}:{})
+        }));
     }
     const handlesubmit = async(e)=>{
         e.preventDefault();
@@ -31,7 +33,7 @@ function Labourverification(){
         return;
 }
 
-       if (form.idType === "Voter" &&
+       if (form.idType === "Voter ID" &&
            !/^[A-Za-z0-9]{10}$/.test(form.idNumber)) {
             alert("Enter a valid 10-character Voter ID number.");
            return;

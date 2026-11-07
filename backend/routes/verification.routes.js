@@ -5,6 +5,9 @@ const requireAdmin = require("../middleware/requireAdmin")
 
 router.post("/submit",async(req,res)=>{
 try{
+  console.log("Verification request body:", req.body);
+console.log("Selected ID type:", req.body.idType);
+console.log("Entered ID number:", req.body.idNumber);
  if(!req.isAuthenticated()){
     return res.status(401).json({
         error: "Please log in first"
@@ -21,20 +24,20 @@ try{
         error: "Please provide address and identity document type"
     })
   }
+  if(!["Aadhaar","Voter ID"].includes(idType)){
+    return res.status(400).json({
+        error: "Select a valid identity document type."
+    });
+  }
   if(idType == "Aadhaar" && !/^\d{4}$/.test(idNumber || "")){
     return res.status(400).json({
      error: "Enter the last 4 digits of Aadhaar."
     })
   }
-  if(idType == "Voter" && !/^[A-Za-z0-9]{10}$/.test(idNumber || "")){
+  if(idType == "Voter ID" && !/^[A-Za-z0-9]{10}$/.test(idNumber || "")){
     return res.status(400).json({
        error: "Enter a valid Voter ID number."
     })
-  }
-  if(!["Aadhaar,Voter"].includes(idType)){
-    return res.status(400).json({
-        error: "Select a valid identity document type."
-    });
   }
   if(experience == "" ||
     experience == undefined ||
@@ -56,6 +59,7 @@ try{
   req.user.verificationAddress = address.trim();
   req.user.verificationExperience = Number(experience);
   req.user.verificationIdType = idType;
+  req.user.verificationIdNumber= idNumber;
   req.user.verificationStatus = "pending";
   req.user.verificationSubmittedAt = new Date();
   req.user.verificationReviewedAt = null;
