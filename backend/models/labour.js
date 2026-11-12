@@ -4,7 +4,14 @@ const laborerSchema = new mongoose.Schema({
   category: { type: String, required: true },
   skills: [String],
   bio: String,
-  photoUrl: String,
+  photoUrl: {
+   type: String,
+   default: ""
+  },
+  photoPublicId: {
+    type: String,
+    default: ""
+},
   hourlyRate: Number,
   location: {
     type: { type: String, enum: ['Point'], default: 'Point' },

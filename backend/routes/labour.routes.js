@@ -1,9 +1,31 @@
 const express = require("express");
 const router = express.Router();
 const Labour = require("../models/labour");
-const requireVerifiedLaborer  = require("../middleware/requireverifiedLabourer")
+const requireVerifiedLaborer  = require("../middleware/requireverifiedLabourer");
+const upload = require("../middleware/upload");
+const cloudinary = require("../config/cloudinary");
 
-router.post("/",requireVerifiedLaborer ,async (req,res)=>{
+const uploadToCloudinary = (fileBuffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder: "sahyogconnect/labourers",
+                resource_type: "image"
+            },
+            (error, result) => {
+                if (error) {
+                    return reject(error);
+                }
+                resolve(result);
+            }
+        );
+
+        stream.end(fileBuffer);
+    });
+};
+
+router.post("/",requireVerifiedLaborer , upload.single("photo"),async (req,res)=>{
+    let uploadedImage = null;
     try{
         if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"});
         const {category, skills, bio, hourlyRate, lng, lat } = req.body;
@@ -14,6 +36,7 @@ router.post("/",requireVerifiedLaborer ,async (req,res)=>{
 }
         const latitude = Number(lat);
         const longitude = Number(lng);
+        const rate = Number(hourlyRate);
          if (
             !Number.isFinite(longitude) ||
             !Number.isFinite(latitude) ||
@@ -23,6 +46,35 @@ router.post("/",requireVerifiedLaborer ,async (req,res)=>{
             return res.status(400).json({
                 error: "Valid longitude and latitude are required"
             });
+        }
+        if(!Number.isFinite(rate) || rate <= 0){
+            return res.status(400).json({
+                error: "Please select valid hourly rate"
+            })
+        }
+
+        const existinglabour = await Labour.findOne({
+            userId: req.user._id
+        })
+
+        if(req.file){
+            uploadedImage = uploadToCloudinary(req.file.buffer);
+        }
+
+        const updatedata = {
+            category : category.trim().toLowerCase(),
+            skills : skills ? skills.split(",").map(skill => skill.trim()).filter(Boolean) : [],
+            hourlyRate : rate,
+            bio,
+            location: {
+                type: "Point",
+                coordinates: [longitude,latitude]
+            }
+        }
+
+        if(uploadedImage){
+            updatedata.photoUrl = uploadedImage.secure_url;
+            updatedata.photoPublicId = uploadedImage.public_id;
         }
 
         const labourer = await Labour.findOneAndUpdate(
@@ -41,6 +93,11 @@ router.post("/",requireVerifiedLaborer ,async (req,res)=>{
             },
             { upsert: true, new: true }
         )
+        if(uploadedImage && existinglabour?.photoPublicId){
+            await cloudinary.uploader.destroy(
+                existinglabour.photoPublicId
+            )
+        }
         res.json(labourer);
     }catch(err){
         return res.status(400).json({error: err.message});

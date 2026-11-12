@@ -60,8 +60,28 @@ function LabourDetail(){
    if (!labour) return null;
   return(
     <div style={{ maxWidth: 700, margin: "40px auto" }}>
-            <h1>{labour.category}</h1>
-            <p><strong>Provider:</strong> {labour.userId?.name || "N/A"}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+    <img
+        src={labour.photoUrl || "/default-profile.png"}
+        alt={labour.userId?.name || "Labourer"}
+        onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/default-profile.png";
+        }}
+        style={{
+            width: "120px",
+            height: "120px",
+            borderRadius: "50%",
+            objectFit: "cover",
+            border: "3px solid #e5e7eb"
+        }}
+    />
+
+    <div>
+        <h1>{labour.userId?.name || "N/A"}</h1>
+        <p>{labour.category}</p>
+    </div>
+</div>
             <p><strong>Bio:</strong> {labour.bio}</p>
             <p><strong>Rate:</strong> ₹{labour.hourlyRate}/hr</p>
             <p><strong>Skills:</strong> {labour.skills?.join(", ") || "Not listed"}</p>
@@ -91,6 +111,7 @@ function LabourDetail(){
             {bookingmsg && <p>{bookingmsg}</p>}
 
             <hr style={{ margin: "24px 0" }} />
+            
 
             <h2>Reviews</h2>
             {reviews.length === 0 && <p>No reviews yet.</p>}

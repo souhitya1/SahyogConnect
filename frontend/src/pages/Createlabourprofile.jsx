@@ -16,6 +16,8 @@ function Createlabourprofile(){
     const [error,seterror] = useState("");
     const[loading,setloading] = useState(false);
     const [success,setsuccess] = useState("");
+    const [photo, setphoto] = useState(null);
+    const [preview, setpreview] = useState("");
     const detectLocation = () => {
         seterror("");
         if (!navigator.geolocation) {
@@ -35,7 +37,12 @@ function Createlabourprofile(){
             }
         );
     };
-
+    const handlephotochange = (e)=>{
+        const file = e.target.files[0];
+        if(!file) return;
+        setphoto(file);
+        setpreview(URL.createObjectURL(file));
+    }
     const handleChange = (e)=>{
         setform({...form,[e.target.name]: e.target.value});
     }
@@ -50,14 +57,17 @@ function Createlabourprofile(){
             return;
         }
      try{
-       await api.post("/labour",{
-        category: form.category,
-        skills: form.skills,
-        hourlyRate: form.hourlyRate,
-        bio: form.bio,
-        lat: form.lat,
-        lng: form.lng
-       })
+        const formData = new FormData();
+        formData.append("category",form.category);
+        formData.append("skills", form.skills);
+        formData.append("hourlyRate", form.hourlyRate);
+        formData.append("bio", form.bio);
+        formData.append("lat", form.lat);
+        formData.append("lng", form.lng);
+       if(photo){
+        formData.append("photo",photo);
+       }
+       const response = await api.post("/labour",formData);
        setsuccess("Profile saved! You're now visible in search.")
      }catch(err){
       seterror(err.response?.data?.error || "Cannot get profile");
@@ -120,6 +130,32 @@ function Createlabourprofile(){
                     required
                 />
                 <br /><br />
+
+                <label>Profile Photo:</label>
+                <br />
+
+    <input
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    onChange={handlephotochange}
+/>
+
+{preview && (
+    <div style={{ marginTop: "10px" }}>
+        <img
+            src={preview}
+            alt="Profile preview"
+            style={{
+                width: "120px",
+                height: "120px",
+                borderRadius: "50%",
+                objectFit: "cover"
+            }}
+        />
+    </div>
+)}
+
+<br /><br />
 
                 <label>Hourly Rate (₹):</label>
                 <br />
