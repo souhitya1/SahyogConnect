@@ -5,29 +5,36 @@ const requireVerifiedLaborer  = require("../middleware/requireverifiedLabourer")
 const upload = require("../middleware/upload");
 const cloudinary = require("../config/cloudinary");
 
-const uploadToCloudinary = (fileBuffer) => {
-    return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
+const uploadToCloudinary = async (fileBuffer, mimetype) => {
+    try {
+        const base64Image = fileBuffer.toString("base64");
+
+        const result = await cloudinary.uploader.upload(
+            `data:${mimetype};base64,${base64Image}`,
             {
                 folder: "sahyogconnect/labourers",
                 resource_type: "image"
-            },
-            (error, result) => {
-                if (error) {
-                    return reject(error);
-                }
-                resolve(result);
             }
         );
 
-        stream.end(fileBuffer);
-    });
+        console.log("Cloudinary upload successful:", result.public_id);
+
+        return result;
+
+    } catch (error) {
+        console.error("Cloudinary upload failed:", error);
+        throw error;
+    }
 };
 
 router.post("/",requireVerifiedLaborer , upload.single("photo"),async (req,res)=>{
     let uploadedImage = null;
+        console.log("A: Route handler entered");
     try{
+    
         if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"});
+                console.log("B: Authentication checked");
+
         const {category, skills, bio, hourlyRate, lng, lat } = req.body;
         if (!category || !category.trim()) {
     return res.status(400).json({
@@ -56,9 +63,13 @@ router.post("/",requireVerifiedLaborer , upload.single("photo"),async (req,res)=
         const existinglabour = await Labour.findOne({
             userId: req.user._id
         })
+              console.log("C: Existing profile query completed");
 
         if(req.file){
-            uploadedImage = uploadToCloudinary(req.file.buffer);
+            console.log("D: Image received");
+            console.log("E: Uploading to Cloudinary...");
+            uploadedImage = await  uploadToCloudinary(req.file.buffer, req.file.mimetype);
+            console.log("F: uploaded to cloudinary")
         }
 
         const updatedata = {
@@ -76,30 +87,28 @@ router.post("/",requireVerifiedLaborer , upload.single("photo"),async (req,res)=
             updatedata.photoUrl = uploadedImage.secure_url;
             updatedata.photoPublicId = uploadedImage.public_id;
         }
+                console.log("G: Updating MongoDB...");
 
         const labourer = await Labour.findOneAndUpdate(
             {userId: req.user._id},
             {
-                $set:{
-                category: category.trim().toLowerCase(),
-                skills,
-                bio,
-                hourlyRate: Number(hourlyRate),
-                location: {type: "Point",coordinates: [longitude,latitude] }
-                },
+                $set: updatedata,
             $setOnInsert: {
                     userId: req.user._id
                 }
             },
-            { upsert: true, new: true }
+            { upsert: true, new: true, runValidators: true }
         )
+        console.log("H: MongoDB updated");
         if(uploadedImage && existinglabour?.photoPublicId){
             await cloudinary.uploader.destroy(
                 existinglabour.photoPublicId
             )
         }
-        res.json(labourer);
+        console.log("I:sending response")
+        return res.json(labourer);
     }catch(err){
+                console.error("POST /labour error:", err);
         return res.status(400).json({error: err.message});
     }
 })

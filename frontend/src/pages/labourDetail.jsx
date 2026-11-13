@@ -68,6 +68,7 @@ function LabourDetail(){
             e.currentTarget.onerror = null;
             e.currentTarget.src = "/default-profile.png";
         }}
+        
         style={{
             width: "120px",
             height: "120px",
@@ -76,12 +77,12 @@ function LabourDetail(){
             border: "3px solid #e5e7eb"
         }}
     />
-
     <div>
         <h1>{labour.userId?.name || "N/A"}</h1>
         <p>{labour.category}</p>
     </div>
 </div>
+<p>Photo URL: {labour.photoUrl || "No photo URL found"}</p>
             <p><strong>Bio:</strong> {labour.bio}</p>
             <p><strong>Rate:</strong> ₹{labour.hourlyRate}/hr</p>
             <p><strong>Skills:</strong> {labour.skills?.join(", ") || "Not listed"}</p>
