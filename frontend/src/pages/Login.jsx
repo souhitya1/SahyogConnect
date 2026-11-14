@@ -1,8 +1,10 @@
 import { useState} from "react";
 import { useNavigate,Link } from "react-router-dom";
+import { useAuth } from "../context/Authcontext";
 import api from "../api/axios";
 function Login(){
      const navigate = useNavigate();
+     const {checkauth} = useAuth()
      const [form,setform] = useState({
         email: "",
         password: ""
@@ -21,7 +23,7 @@ function Login(){
                 email: form.email.trim(),
                 password: form.password,
             });
-            const loggedinuser = response.data.user;
+            const loggedinuser = await checkauth();
             if(loggedinuser?.role == "laborer"){
                 navigate("/labour");
             }else if(loggedinuser?.role == "user"){

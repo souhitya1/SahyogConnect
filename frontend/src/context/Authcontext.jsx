@@ -9,9 +9,11 @@ export function Authprovider({children}){
     const checkauth = async()=>{
         try{
             const res= await api.get("/auth/me");
-            setuser(res.data.user);
+            setuser(res.data.user || res.data);
+            return res.data.user || res.data
         }catch{
             setuser(null);
+            return null;
         }finally{
             setloading(false)
         }

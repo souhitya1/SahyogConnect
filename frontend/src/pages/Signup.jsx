@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate,Link } from "react-router-dom";
+import { useAuth } from "../context/Authcontext";
 import api from "../api/axios";
 function Signup(){
     const navigate = useNavigate();
+    const {checkauth} = useAuth();
     const [form,setform] = useState({
         name: "",
         phone: "",
@@ -21,7 +23,14 @@ function Signup(){
         setloading(true);
         try{
            await api.post("/auth/signup",form);
-           navigate("/");
+           const newuser = checkauth();
+        if(newuser?.role == "laborer"){
+            navigate("/labour")
+        }else if(newuser?.role == "user"){
+            navigate("/");
+        }else{
+         seterror("Could not retrieve user details");
+        }
         }catch(err){
         seterror(err.response?.data?.error || "Signup failed");
         }finally{
