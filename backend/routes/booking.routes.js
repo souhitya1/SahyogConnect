@@ -56,24 +56,58 @@ router.get("/labourer/my",requireverifiedLabourer,async(req,res)=>{
     return res.status(500).json({ error: err.message });
   }
 });
-router.patch("/:id/status",async(req,res)=>{
-    try{
-    if(!req.isAuthenticated()) return res.status(401).json({error: "Not logged in"});
-    const{status} = req.body;
-    const validatestatus = ["pending", "accepted", "completed", "cancelled"];
-    if(!validatestatus.includes(status)){
-        return res.status(400).json({error: "Invalid status"})
+router.patch("/:id/progress",requireverifiedLabourer,async(req,res)=>{
+ try{
+     if (!mongoose.isValidObjectId(req.params.id)){
+            return res.status(400).json({ error: "Invalid booking ID" });
+        }
+   const transitions = {
+      accepted: "on_the_way",
+      on_the_way: "arrived",
+      arrived: "work_started",
+      work_started: "completed"
+   }
+   const {status} = req.body;
+   if (!Object.values(transitions).includes(status)) {
+            return res.status(400).json({
+                error: "Invalid progress status"
+            });
+        }
+    const labour = await Labour.findOne({
+        userId: req.user._id
+    })
+   if(!labour){
+     return res.status(404).json({
+                error: "Labour profile not found"
+            });
+   }
+   const currentstatus = Object.keys(transitions).find(
+    key => transitions[key] === status
+   )
+   const booking = await Booking.findOneAndUpdate(
+    {
+        _id: req.params.id,
+        labourId: labour._id,
+        status: currentstatus
+    },
+    {
+        $set: {status}
+    },
+    {
+         new: true,
+        runValidators: true
     }
-    const bookingstatus = await Booking.findByIdAndUpdate(
-        req.params.id,
-        {status},
-        {new: true}
-    )
-    if(!bookingstatus) return res.status(404).json({error: "No booking found"});
-    res.json(bookingstatus);
-    }catch(err){
-        return res.status(400).json({error: err.message});
-    }
+   )
+     if (!booking) {
+            return res.status(400).json({
+                error: "Booking not found or progress is out of order"
+            });
+        }
+
+        return res.json(booking);
+ }catch(err){
+    return res.status(500).json({ error: err.message });
+ }
 })
 router.get("/user/:userId",async(req,res)=>{
     try{
@@ -126,7 +160,7 @@ router.patch("/:id/reject",requireverifiedLabourer,(req,res)=>{
     updatestatus(req,res,"pending","rejected")
 })
 router.patch("/:id/complete",requireverifiedLabourer,(req,res)=>{
-    updatestatus(req,res,"accepted","completed")
+    updatestatus(req,res,"work_started","completed")
 })
 router.patch("/:id/cancel",async(req,res)=>{
     try{
