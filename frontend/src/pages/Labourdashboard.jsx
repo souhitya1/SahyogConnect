@@ -35,7 +35,10 @@ function Labourdashboard(){
       const actions = {
         accept : "accept",
         reject: "reject",
-        complete : "mark as complete"
+        on_the_way: "start travelling",
+        arrived: "mark yourself as arrived",
+        work_started: "start work",
+        complete: "mark this booking as completed"
       }
       if(!window.confirm(`Are you sure you want to ${actions[action]} this booking`)){
         return
@@ -44,10 +47,21 @@ function Labourdashboard(){
         setupdatingId(bookingId);
         seterror("");
         setmessage("");
-        await api.patch(`/bookings/${bookingId}/${action}`);
+        if(action == "accept" || action == "reject"){
+          await api.patch(`/bookings/${bookingId}/${action}`)
+        }else{
+          const status = action === "complete" ? "completed" : action;
+
+            await api.patch(`/bookings/${bookingId}/progress`, {
+                status
+            });
+        }
         const successmessage = {
             accept: "Booking accepted",
             reject: "Booking rejected",
+            on_the_way: "You are on the way",
+            arrived: "Arrival marked successfully",
+            work_started: "Work started",
             complete: "Booking completed"
         }
         setmessage(successmessage[action]);
@@ -62,11 +76,14 @@ function Labourdashboard(){
     }
      const getStatusStyle = (status) => {
     const colors = {
-      pending: "#b45309",
-      accepted: "#15803d",
-      rejected: "#b91c1c",
+        pending: "#b45309",
+       accepted: "#15803d",
+       rejected: "#b91c1c",
+       on_the_way: "#2563eb",
+       arrived: "#7c3aed",
+       work_started: "#0891b2",
       completed: "#1d4ed8",
-      cancelled: "#6b7280",
+       cancelled: "#6b7280"
     };
 
     return {
@@ -146,6 +163,9 @@ function Labourdashboard(){
   const completed = bookings.filter(
     (b)=>b.status == 'completed'
   ).length;
+  const inProgress = bookings.filter(
+    b => ["on_the_way", "arrived", "work_started"].includes(b.status)
+).length;
   return (
     <main style={styles.container}>
       <header style={styles.header}>
@@ -166,6 +186,7 @@ function Labourdashboard(){
       <section style={styles.stats}>
         <StatCard title="Pending" count={pending} />
         <StatCard title="Accepted" count={accepted} />
+         <StatCard title="In Progress" count={inProgress} />
         <StatCard title="Completed" count={completed} />
       </section>
 
@@ -241,12 +262,41 @@ function Labourdashboard(){
                 style={styles.completeButton}
                 disabled={updatingId === booking._id}
                 onClick={() =>
-                  handlebooking(booking._id, "complete")
+                  handlebooking(booking._id, "on_the_way")
                 }
               >
-                Mark as Completed
+                  Start Travelling
               </button>
             )}
+            {booking.status === "on_the_way" && (
+    <button
+        style={styles.completeButton}
+        disabled={updatingId === booking._id}
+        onClick={() => handlebooking(booking._id, "arrived")}
+    >
+        Mark as Arrived
+    </button>
+)}
+
+{booking.status === "arrived" && (
+    <button
+        style={styles.acceptButton}
+        disabled={updatingId === booking._id}
+        onClick={() => handlebooking(booking._id, "work_started")}
+    >
+        Start Work
+    </button>
+)}
+
+{booking.status === "work_started" && (
+    <button
+        style={styles.completeButton}
+        disabled={updatingId === booking._id}
+        onClick={() => handlebooking(booking._id, "complete")}
+    >
+        Complete Work
+    </button>
+)}
           </article>
         ))
       )}
