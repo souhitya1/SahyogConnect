@@ -15,7 +15,8 @@ lerna-debug.log*
 **/.env.*
 
 # Dependencies
-node_modules
+**/node_modules/
+node_modules/
 
 # Build files
 dist
