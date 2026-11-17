@@ -49,39 +49,48 @@ router.post("/chat",async(req,res)=>{
                 labourers: []
             });
     }
+    console.log("1. AI route reached");
     const ai = await getGeminiClient();
-
+console.log("2. Calling Gemini");
         const response = await ai.interactions.create({
-            model: "gemini-3.8-flash",
+            model: "gemini-3.5-flash-lite",
             input: `
 You are Sahyog AI, an assistant for a labour booking platform.
 
-The customer says: "${message.trim()}"
+Customer problem: ${message.trim()}
 
 Available labour categories:
 ${JSON.stringify(categories)}
 
-Identify the most suitable category from the available categories.
-
-Rules:
-- Select only an exact category from the provided list.
-- Never invent a category.
-- If the request is unrelated to labour services, use null.
-- Return valid JSON only.
-
-Required JSON format:
-{
-  "category": "exact category or null",
-  "reply": "A short, friendly response to the customer"
-}
-`
+Choose the most suitable category from the list.
+Never invent a category.
+If unrelated to labour services, return null.
+Give a short, friendly reply.
+`,
+ response_format: {
+    type: "text",
+        mime_type: "application/json",
+        schema: {
+            type: "object",
+            properties: {
+                category: {
+                    type: ["string", "null"],
+                    enum: [...categories, null]
+                },
+                reply: {
+                    type: "string"
+                }
+            },
+            required: ["category", "reply"]
+        }
+ }
         });
  const output = response.output_text;
-   const cleanedOutput = output
-            .replace(/```json/gi, "")
-            .replace(/```/g, "")
-            .trim();
-    const aiResult = JSON.parse(cleanedOutput);
+ console.log("3. Gemini responded", output);
+ if (!output) {
+    throw new Error("Gemini returned an empty response");
+}
+  const aiResult = JSON.parse(output);
   const selectedcatagory =  categories.find(
     category =>
         category.toLowerCase() === String(aiResult.category || "").toLowerCase()

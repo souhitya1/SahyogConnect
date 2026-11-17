@@ -1,29 +1,35 @@
-const dotenv = require("dotenv");
 const path = require("path");
 
-dotenv.config({
-    path: path.resolve(__dirname, "../.env")
+require("dotenv").config({
+    path: path.join(__dirname, "../.env")
 });
-const getGeminiClient = require("./config/gemini");
-async function  testGemini(){
-    try{
-    console.log("Starting Gemini test...");
-     console.log(
-            "API key loaded:",
-            Boolean(process.env.GEMINI_API_KEY)
-        );
-    const ai = await getGeminiClient();
-     console.log("Gemini client initialized.");
 
-        console.log("Sending request to Gemini...");
-    const response = await ai.interactions.create({
-        model: "gemini-3.8-flash",
-        input: "Introduce yourself as Sahyog AI in one sentence."
-    })
-    console.log("Gemini response");
-    console.log(response.output_text);
+async function testGemini() {
+    try {
+        console.log("Testing Gemini REST API...");
+
+        const response = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/interactions",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": process.env.GEMINI_API_KEY
+                },
+                body: JSON.stringify({
+                    model: "gemini-3.5-flash-lite",
+                    input: "Reply only with OK."
+                }),
+                signal: AbortSignal.timeout(30000)
+            }
+        );
+
+        console.log("HTTP status:", response.status);
+        console.log("Response:", await response.text());
+
     } catch (error) {
-        console.error("Gemini connection failed:", error.message);
+        console.error("Gemini test failed:", error);
     }
 }
+
 testGemini();
