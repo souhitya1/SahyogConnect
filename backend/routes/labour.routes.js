@@ -77,6 +77,7 @@ router.post("/",requireVerifiedLaborer , upload.single("photo"),async (req,res)=
             skills : skills ? skills.split(",").map(skill => skill.trim()).filter(Boolean) : [],
             hourlyRate : rate,
             bio,
+            isVerified: true,
             location: {
                 type: "Point",
                 coordinates: [longitude,latitude]
@@ -88,7 +89,8 @@ router.post("/",requireVerifiedLaborer , upload.single("photo"),async (req,res)=
             updatedata.photoPublicId = uploadedImage.public_id;
         }
                 console.log("G: Updating MongoDB...");
-
+            console.log("Logged-in User ID:", req.user._id);
+             console.log("Existing Labour User ID:", existinglabour?.userId);
         const labourer = await Labour.findOneAndUpdate(
             {userId: req.user._id},
             {

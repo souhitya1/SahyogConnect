@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
 const requireAdmin = require("../middleware/requireAdmin")
+const Labour = require("../models/labour")
 
 router.post("/submit",async(req,res)=>{
 try{
@@ -121,7 +122,18 @@ router.patch("/:id/review",requireAdmin,async(req,res)=>{
     labourer.verificationReviewedAt = new Date();
     labourer.verificationNote = typeof note === "string" ? note.trim().slice(0, 500) : "";
     await labourer.save();
-    res.json({
+    const result= await Labour.updateMany(
+      {userId: labourer._id},
+      {
+        $set:{
+          isVerified: status == "approved"
+        }
+      }
+    );
+    console.log("Approved User ID:", labourer._id);
+console.log("Labour profiles matched:", result.matchedCount);
+console.log("Labour profiles updated:", result.modifiedCount);
+    return res.json({
             message: `Application ${status}.`,
             user: {
                 _id: labourer._id,
@@ -129,7 +141,8 @@ router.patch("/:id/review",requireAdmin,async(req,res)=>{
                 isVerified: labourer.isVerified
             }
         });
-  }catch(er){
+        
+  }catch(err){
      console.error(err);
         res.status(500).json({
             error: "Could not review application."
