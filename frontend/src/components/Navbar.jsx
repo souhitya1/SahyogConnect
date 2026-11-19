@@ -14,6 +14,7 @@ function Navbar() {
                     {user.role === "user" &&(
                     <>
                     <Link to="/bookings">My booking</Link>
+                    <Link to="/sahyog-ai">Sahyog AI</Link>
                     </>
                     )}
                     {user.role === "laborer" &&(

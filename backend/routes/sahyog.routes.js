@@ -62,10 +62,16 @@ Customer problem: ${message.trim()}
 Available labour categories:
 ${JSON.stringify(categories)}
 
-Choose the most suitable category from the list.
-Never invent a category.
-If unrelated to labour services, return null.
-Give a short, friendly reply.
+
+Tasks:
+1. Choose the most suitable category from the available list.
+2. Never invent a category.
+3. If unrelated to labour services, return null for category.
+4. Identify any minimum rating requirement.
+5. If customer says "more than 3 stars", set minRating to 3 and ratingOperator to "gt".
+6. If customer says "at least 3 stars" or "3 stars or more", set minRating to 3 and ratingOperator to "gte".
+7. If no rating is mentioned, set minRating and ratingOperator to null.
+8. Give a short, friendly reply.
 `,
  response_format: {
     type: "text",
@@ -79,9 +85,16 @@ Give a short, friendly reply.
                 },
                 reply: {
                     type: "string"
+                },
+                minRating: {
+                    type: ["number","null"]
+                },
+                ratingOperator: {
+                    type: ["string","null"],
+                    enum: ["gt","gte",null]
                 }
             },
-            required: ["category", "reply"]
+            required: ["category", "reply", "minRating", "ratingOperator"]
         }
  }
         });
@@ -91,6 +104,16 @@ Give a short, friendly reply.
     throw new Error("Gemini returned an empty response");
 }
   const aiResult = JSON.parse(output);
+  const minRating= aiResult.minRating;
+  const ratingOperator = aiResult.ratingOperator;
+  if(minRating != null){
+  if(typeof minRating != "number" || (!Number.isFinite(minRating) || minRating <0 || minRating> 5)){
+    throw new Error("Invalid rating given by Sahyog AI")
+  }
+  if (!["gt", "gte"].includes(ratingOperator)) {
+        throw new Error("Invalid rating operator");
+    }
+}
   const selectedcatagory =  categories.find(
     category =>
         category.toLowerCase() === String(aiResult.category || "").toLowerCase()
@@ -102,6 +125,19 @@ Give a short, friendly reply.
         labourers: []
     });
 }
+const labourquery = {
+    category: {
+        $regex: `^${escapeRegex(selectedcatagory)}$`,
+        $options: "i"
+    },
+    isVerified: true,
+    availability: true
+}
+if(minRating != null){
+    labourquery.avgRating= {
+        [ratingOperator == "gte" ? "$gte" : "$gt"]: minRating
+    }
+}
   const labourers = await Labour.aggregate([
     {
         $geoNear: {
@@ -112,14 +148,7 @@ Give a short, friendly reply.
             distanceField: "distance",
             maxDistance: searchRadius,
             spherical: true,
-            query:{
-                category:{
-                    $regex: `${escapeRegex(selectedcatagory)}$`,
-                    $options: "i"
-                },
-                isVerified: true,
-                availability: true
-            }
+            query: labourquery
         }
     },
     {
