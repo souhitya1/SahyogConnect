@@ -72,6 +72,13 @@ Tasks:
 6. If customer says "at least 3 stars" or "3 stars or more", set minRating to 3 and ratingOperator to "gte".
 7. If no rating is mentioned, set minRating and ratingOperator to null.
 8. Give a short, friendly reply.
+9. Identify the customer's maximum hourly budget.
+10. If the customer says "less than 400" or "under 400",
+    return maxBudget: 400 and budgetOperator: "lt".
+11. If the customer says "within 400", "up to 400",
+    or "400 or less", return maxBudget: 400 and budgetOperator: "lte".
+12. If no budget is mentioned, return null for both fields.
+13. Extract the numeric budget only. Do not invent a budget.
 `,
  response_format: {
     type: "text",
@@ -89,12 +96,19 @@ Tasks:
                 minRating: {
                     type: ["number","null"]
                 },
+                maxBudget: {
+                    type: ["number","null"]
+                },
+                budgetOperator: {
+                  type: ["string","null"],
+                  enum: ["lt","lte",null]
+                },
                 ratingOperator: {
                     type: ["string","null"],
                     enum: ["gt","gte",null]
                 }
             },
-            required: ["category", "reply", "minRating", "ratingOperator"]
+            required: ["category", "reply", "minRating", "ratingOperator","maxBudget","budgetOperator"]
         }
  }
         });
@@ -106,12 +120,27 @@ Tasks:
   const aiResult = JSON.parse(output);
   const minRating= aiResult.minRating;
   const ratingOperator = aiResult.ratingOperator;
+  const maxBudget = aiResult.maxBudget;
+  const budgetOperator = aiResult.budgetOperator;
   if(minRating != null){
   if(typeof minRating != "number" || (!Number.isFinite(minRating) || minRating <0 || minRating> 5)){
     throw new Error("Invalid rating given by Sahyog AI")
   }
   if (!["gt", "gte"].includes(ratingOperator)) {
         throw new Error("Invalid rating operator");
+    }
+}
+if (maxBudget !== null) {
+    if (
+        typeof maxBudget !== "number" ||
+        !Number.isFinite(maxBudget) ||
+        maxBudget <= 0
+    ) {
+        throw new Error("Invalid budget given by Sahyog AI");
+    }
+
+    if (!["lt", "lte"].includes(budgetOperator)) {
+        throw new Error("Invalid budget operator");
     }
 }
   const selectedcatagory =  categories.find(
@@ -138,6 +167,23 @@ if(minRating != null){
         [ratingOperator == "gte" ? "$gte" : "$gt"]: minRating
     }
 }
+if (maxBudget !== null) {
+    labourquery.hourlyRate = {
+        [budgetOperator === "lte" ? "$lte" : "$lt"]: maxBudget
+    };
+}
+const test = await Labour.find({
+    category: { $regex: "^electrician$", $options: "i" }
+});
+
+console.log("Electrician profiles:", test.map(l => ({
+    userId: l.userId,
+    category: l.category,
+    hourlyRate: l.hourlyRate,
+    isVerified: l.isVerified,
+    availability: l.availability,
+    coordinates: l.location.coordinates
+})));
   const labourers = await Labour.aggregate([
     {
         $geoNear: {
@@ -193,6 +239,15 @@ if(minRating != null){
         }
     }
   ]);
+  console.log(
+    "Recommended labourers:",
+    labourers.map(l => ({
+        name: l.user?.name,
+        rating: l.avgRating,
+        hourlyRate: l.hourlyRate,
+        distance: l.distance
+    }))
+);
   return res.json({
     reply: aiResult.reply,
     category: selectedcatagory,

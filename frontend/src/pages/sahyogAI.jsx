@@ -36,8 +36,15 @@ function SahyogAI() {
     });
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
+    const conversations = [
+        ...messages
+        .filter(msg=> msg.role === "user")
+        .map(msg => msg.text),
+        usermessage
+    ]
     const res = await api.post("/ai/chat",{
         message: usermessage,
+        conversations,
         lat,
         lng,
         radius: 5000
